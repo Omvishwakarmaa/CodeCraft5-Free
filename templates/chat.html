@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeCraft 5 — Free Chatbot</title>
+<link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='codecraft5-logo.jpg') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080d19;--panel:rgba(17,25,43,.9);--panel2:#121d31;--text:#edf3ff;--muted:#8e9bb3;--line:rgba(160,180,220,.16)}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+body.light{--bg:#edf1f8;--panel:rgba(255,255,255,.92);--panel2:#f4f6fb;--text:#172033;--muted:#647089;--line:rgba(40,55,90,.14)}
+#fx{position:fixed;inset:0;z-index:-2;background:radial-gradient(ellipse at 15% 10%,#22205b,transparent 45%),radial-gradient(ellipse at 85% 80%,#123f54,transparent 45%),var(--bg)}
+body.thunder #fx{background:linear-gradient(120deg,#080d1b,#251844,#091323);background-size:180% 180%;animation:storm 8s ease infinite}
+body.water #fx{background:linear-gradient(135deg,#06243b,#07536a,#101a3c);background-size:200% 200%;animation:water 12s ease infinite}
+#fx:after{content:"";position:absolute;inset:-50%;opacity:.16;background:repeating-radial-gradient(ellipse at center,transparent 0 45px,#8adfff 47px 49px,transparent 52px 90px);animation:ripple 24s linear infinite}
+@keyframes storm{50%{filter:hue-rotate(25deg) brightness(1.2)}}@keyframes water{50%{background-position:100% 100%}}@keyframes ripple{to{transform:rotate(360deg)}}
+.app{height:100vh;max-width:1100px;margin:auto;padding:22px;display:flex;flex-direction:column;gap:14px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{display:flex;align-items:center;gap:12px}.logo-img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #38d9ff;box-shadow:0 0 18px #28bfff66}.brand h1{font-size:18px;margin:0}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+button,.file-label{font:inherit;cursor:pointer;border:1px solid var(--line);color:var(--text);background:var(--panel);border-radius:11px;padding:9px 12px;font-size:12px}.active{border-color:#8c76ff;background:#6550cf33}
+.panel{min-height:0;flex:1;background:var(--panel);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(18px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 70px #0002}.panel-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.online{color:#69dfa9;font-size:11px}.chat{padding:22px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:16px}.welcome{text-align:center;margin:auto;max-width:540px}.orb{width:66px;height:66px;margin:0 auto 18px;border-radius:22px;background:linear-gradient(135deg,#7c5cff,#28bfd1);display:grid;place-items:center;font-size:28px}.welcome h2{margin:0 0 8px;font-size:24px}.welcome p{color:var(--muted);line-height:1.6;font-size:13px}.chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}.chips button{background:var(--panel2)}
+.msg{max-width:min(78%,720px);display:flex;flex-direction:column;gap:6px}.msg.user{align-self:flex-end}.msg.bot{align-self:flex-start}.bubble{padding:13px 15px;border-radius:16px;line-height:1.55;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.user .bubble{background:linear-gradient(135deg,#765df2,#543ed0);color:white;border-bottom-right-radius:5px}.bot .bubble{background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:5px}.meta{font-size:10px;color:var(--muted);display:flex;gap:8px;align-items:center}.speak{padding:4px 8px;font-size:11px}.composer{padding:14px 16px;border-top:1px solid var(--line);background:#0000000c}.inputrow{display:flex;gap:9px;align-items:end}.inputrow textarea{resize:none;min-height:48px;max-height:130px;flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:14px;padding:14px;outline:none;font:inherit;font-size:13px}.send{background:linear-gradient(135deg,#8065ff,#5944d5);border:0;padding:14px 20px;font-weight:700}.hint{font-size:10px;color:var(--muted);padding:8px 3px 0}.error{color:#ff8e9c;font-size:12px;padding:5px 4px}.typing{color:var(--muted);font-size:12px;padding:6px}
+
+.footer{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:11px;padding:2px 4px}
+.footer strong{color:var(--text);font-weight:600}
+.footer a{display:inline-flex;align-items:center;gap:6px;color:var(--text);text-decoration:none;border:1px solid var(--line);background:var(--panel);padding:7px 10px;border-radius:10px;transition:.2s}
+.footer a:hover{border-color:#7c5cff;color:#a99aff;transform:translateY(-1px)}
+.social-icon{width:15px;height:15px;display:inline-block;flex:none}
+
+@media(max-width:650px){.app{padding:12px}.brand h1{font-size:15px}.actions button{padding:8px;font-size:10px}.panel{border-radius:16px}.chat{padding:14px}.msg{max-width:92%}.welcome h2{font-size:20px}}
+</style></head>
+<body class="thunder"><div id="fx"></div><div class="app">
+<header class="top"><div class="brand"><img class="logo-img" src="{{ url_for('static', filename='codecraft5-logo.jpg') }}" alt="CodeCraft 5 logo"><div><h1>CodeCraft 5</h1><small>Free local knowledge chatbot · Python Flask</small></div></div>
+<div class="actions"><button id="thunderBtn" class="active">⚡ Thunder</button><button id="waterBtn">🌊 Water</button><button id="modeBtn">☀️ Light</button><button id="clearBtn">Clear chat</button></div></header>
+<main class="panel"><div class="panel-head"><strong style="font-size:13px">Conversation</strong><span class="online">● Free mode</span></div>
+<section class="chat" id="chatBox">
+{% if messages %}{% for m in messages %}<div class="msg {{ 'user' if m.sender == 'user' else 'bot' }}"><div class="bubble">{{ m.message }}</div><div class="meta">{{ m.created_at }}{% if m.sender == 'bot' %}<button class="speak" onclick="speakText(this)">🔊 Listen</button>{% endif %}</div></div>{% endfor %}
+{% else %}<div class="welcome" id="welcome"><div class="orb">✦</div><h2>Welcome to CodeCraft 5</h2><p>Ask basic Python, C, web development and computer questions. Try voice input with the microphone.</p><div class="chips"><button data-prompt="Python kya hai?">Python kya hai?</button><button data-prompt="What is Flask?">What is Flask?</button><button data-prompt="25 * 4">25 × 4</button></div></div>{% endif %}
+</section>
+<div class="composer"><form id="chatForm"><div class="inputrow"><textarea id="messageInput" placeholder="Message CodeCraft 5…" maxlength="2000" rows="1"></textarea><button type="button" id="micBtn" title="Speak your question">🎙️</button><button class="send" id="sendBtn" type="submit">Send ➤</button></div></form><div class="hint">Enter to send · Shift + Enter for a new line · 🎙️ Speak · 🔊 Listen to replies</div><div class="error" id="error"></div></div>
+</main>
+<footer class="footer">
+ <span>Developed by <strong>Om Vishwakarma</strong></span>
+ <a href="https://www.instagram.com/omzyric/" target="_blank" rel="noopener noreferrer" aria-label="Instagram profile">
+  <svg class="social-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="6" r="1.2" fill="currentColor"/></svg>
+  Instagram
+ </a>
+ <a href="https://www.linkedin.com/in/omvishwakarmaa" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile">
+  <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.2 3.5A2.2 2.2 0 1 1 5.2 7.9a2.2 2.2 0 0 1 0-4.4ZM3.4 9h3.6v11.5H3.4V9Zm5.8 0h3.4v1.6h.1c.5-.9 1.7-1.9 3.5-1.9 3.7 0 4.4 2.4 4.4 5.4v6.4H17v-5.7c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3v5.8H9.2V9Z"/></svg>
+  LinkedIn
+ </a>
+</footer>
+</div>
+<script>
+const box=document.getElementById('chatBox'),form=document.getElementById('chatForm'),input=document.getElementById('messageInput'),errorBox=document.getElementById('error'),sendBtn=document.getElementById('sendBtn');
+function scrollBottom(){box.scrollTop=box.scrollHeight}
+function addMessage(text,who,time,withSpeaker=false){const w=document.getElementById('welcome');if(w)w.remove();const wrap=document.createElement('div');wrap.className='msg '+who;const b=document.createElement('div');b.className='bubble';b.textContent=text;const meta=document.createElement('div');meta.className='meta';meta.textContent=time||new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});if(withSpeaker){const btn=document.createElement('button');btn.className='speak';btn.textContent='🔊 Listen';btn.onclick=()=>speakText(btn);meta.appendChild(btn)}wrap.append(b,meta);box.appendChild(wrap);scrollBottom()}
+function speakText(btn){const text=btn.closest('.msg').querySelector('.bubble').textContent;if(!('speechSynthesis'in window)){errorBox.textContent='Speech playback is not supported in this browser.';return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=/[\u0900-\u097F]/.test(text)?'hi-IN':'en-IN';u.rate=1;speechSynthesis.speak(u)}
+document.querySelectorAll('[data-prompt]').forEach(b=>b.onclick=()=>{input.value=b.dataset.prompt;input.focus()});
+function sound(t){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=t==='water'?390:90;g.gain.setValueAtTime(.025,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.3);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.31);o.onended=()=>c.close()}catch(e){}}
+function theme(t){document.body.classList.remove('thunder','water');document.body.classList.add(t);document.getElementById('thunderBtn').classList.toggle('active',t==='thunder');document.getElementById('waterBtn').classList.toggle('active',t==='water');sound(t)}
+document.getElementById('thunderBtn').onclick=()=>theme('thunder');document.getElementById('waterBtn').onclick=()=>theme('water');
+document.getElementById('modeBtn').onclick=()=>{document.body.classList.toggle('light');document.getElementById('modeBtn').textContent=document.body.classList.contains('light')?'🌙 Dark':'☀️ Light'};
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+form.onsubmit=async e=>{e.preventDefault();errorBox.textContent='';const message=input.value.trim();if(!message)return;addMessage(message,'user');input.value='';sendBtn.disabled=true;sendBtn.textContent='…';const t=document.createElement('div');t.className='typing';t.textContent='CodeCraft 5 is checking its knowledge base…';box.appendChild(t);scrollBottom();try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message})});const d=await r.json();t.remove();if(!r.ok)throw new Error(d.error||'Request failed');addMessage(d.reply,'bot',d.created_at,true)}catch(err){t.remove();errorBox.textContent=err.message}finally{sendBtn.disabled=false;sendBtn.textContent='Send ➤';input.focus()}};
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+const mic=document.getElementById('micBtn');
+let recognition=null;
+if(!window.isSecureContext){
+  mic.title='Microphone needs HTTPS or localhost';
+  mic.onclick=()=>{errorBox.textContent='Microphone browser security: open this app on the same Mac using http://127.0.0.1:5002 (not the 10.x network IP).';};
+}else if(!SpeechRecognition){
+  mic.title='Speech recognition is unavailable in this browser';
+  mic.onclick=()=>{errorBox.textContent='Safari does not support this speech-to-text feature here. Open CodeCraft 5 in Google Chrome on this Mac, then allow microphone access. You can also use macOS Dictation in the message box.';input.focus();};
+}else{
+  mic.onclick=()=>{
+    errorBox.textContent='';
+    if(recognition){try{recognition.stop()}catch(e){}}
+    recognition=new SpeechRecognition();
+    recognition.lang='en-US';
+    recognition.interimResults=true;
+    recognition.continuous=false;
+    recognition.maxAlternatives=1;
+    let finalText='';
+    mic.textContent='⏺️ Listening';
+    mic.classList.add('active');
+    recognition.onresult=(event)=>{
+      let interim='';
+      for(let i=event.resultIndex;i<event.results.length;i++){
+        const transcript=event.results[i][0].transcript;
+        if(event.results[i].isFinal) finalText+=transcript;
+        else interim+=transcript;
+      }
+      input.value=(input.dataset.beforeMic||'')+(input.dataset.beforeMic?' ':'')+finalText+interim;
+    };
+    input.dataset.beforeMic=input.value.trim();
+    recognition.onerror=(event)=>{
+      const messages={
+        'not-allowed':'Microphone permission blocked. Click the site settings icon near the address bar and allow Microphone.',
+        'service-not-allowed':'Speech recognition service is unavailable. Try Google Chrome and check your internet connection.',
+        'network':'Speech recognition needs an internet connection.',
+        'no-speech':'No speech detected. Tap the mic and speak clearly.'
+      };
+      errorBox.textContent=messages[event.error]||('Microphone error: '+event.error);
+    };
+    recognition.onend=()=>{
+      mic.textContent='🎙️';
+      mic.classList.remove('active');
+      input.dataset.beforeMic='';
+      input.focus();
+    };
+    try{recognition.start()}catch(err){
+      mic.textContent='🎙️';mic.classList.remove('active');
+      errorBox.textContent='Could not start microphone. Refresh the page and try again.';
+    }
+  };
+}
+document.getElementById('clearBtn').onclick=async()=>{if(!confirm('Clear this conversation?'))return;try{const r=await fetch('/api/clear',{method:'POST'});if(!r.ok)throw Error();box.innerHTML='<div class="welcome" id="welcome"><div class="orb">✦</div><h2>Chat cleared</h2><p>Start a new conversation with CodeCraft 5.</p></div>'}catch(e){errorBox.textContent='Could not clear chat.'}};
+scrollBottom();
+</script></body></html>
